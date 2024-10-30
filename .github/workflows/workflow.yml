@@ -29,7 +29,7 @@ jobs:
             - name: get services
               run: |
                 Get-Service | Where-Object { $_.Status -eq 'Running' } | Format-Table Name, Status, state
-            
+              shell: pwsh
 
     job-3:
         runs-on: ubuntu-latest
