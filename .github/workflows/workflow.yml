@@ -24,7 +24,7 @@ jobs:
         needs: create-and-build
         steps:
             - name: list folders
-              run: ls -l
+              run: dir
 
     job-3:
         runs-on: ubuntu-latest
