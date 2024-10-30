@@ -28,7 +28,7 @@ jobs:
 
             - name: get services
               run: |
-                Get-Service | Where-Object { $_.Status -eq 'Running' } | Format-Table Name, Status
+                Get-Service | Where-Object { $_.Status -eq 'Running' } | Format-Table Name, Status, state
             
 
     job-3:
