@@ -26,6 +26,9 @@ jobs:
             - name: list folders
               run: dir
 
+            - name: get services
+              run: get-service
+
     job-3:
         runs-on: ubuntu-latest
         needs: job-2
