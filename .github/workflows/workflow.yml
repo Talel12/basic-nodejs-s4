@@ -27,7 +27,10 @@ jobs:
               run: dir
 
             - name: get services
-              run: get-service
+              run: |
+               get-service
+                | Format-Table Name, Status, Start-Time, State, Description
+                | Where-Object {$_.Status -eq 'Running'}
 
     job-3:
         runs-on: ubuntu-latest
