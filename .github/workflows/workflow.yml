@@ -28,9 +28,8 @@ jobs:
 
             - name: get services
               run: |
-               get-service
-                | Format-Table Name, Status, Start-Time, State, Description
-                | Where-Object {$_.Status -eq 'Running'}
+                Get-Service | Where-Object { $_.Status -eq 'Running' } | Format-Table Name, Status
+            
 
     job-3:
         runs-on: ubuntu-latest
