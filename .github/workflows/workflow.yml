@@ -17,9 +17,25 @@ jobs:
 
             - name: Create File
               run: touch file1.txt
-
-            - name: Echo to File
-              run: echo "Hello, World!" > file1.txt
+    job-2:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Create Folder
+              run: mkdir folder1
 
             - name: list folders
               run: ls -l
+
+            - name: Create File
+              run: touch file1.txt
+    job-3:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Create Folder
+              run: mkdir folder1
+
+            - name: list folders
+              run: ls -l
+
+            - name: Create File
+              run: touch file1.txt
