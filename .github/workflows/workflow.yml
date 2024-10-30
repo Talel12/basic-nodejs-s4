@@ -20,7 +20,7 @@ jobs:
               run: touch file1.txt
 
     job-2:
-        runs-on: [ubuntu-latest, windows-latest]
+        runs-on: windows-latest
         needs: create-and-build
         steps:
             - name: list folders
