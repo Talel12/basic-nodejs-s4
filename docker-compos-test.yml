@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+
+  basic-nodejs-s3-service:
+    container_name: basic-nodejs-s3-container
+    image: assidiwassimdev/nodejs-basic-image:v2
+    ports:
+      - "3060:3001"
+  

@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+
+  basic-nodejs-s3-service:
+    container_name: basic-nodejs-s3-container
+    image: basic-nodejs-s3-image
+    build: .
+    environment:
+      - DB_HOST=mongodb://mongodb-service:27017/mydb
+    ports:
+      - "3060:3001"
+    depends_on:
+      - mongodb-service
+    networks:
+      - my-network
+
+  mongodb-service:
+    image: mongo:latest
+    ports:
+      - "27018:27017"
+    networks:
+      - my-network
+    volumes:
+      - mongodb-volume:/data/db
+
+networks:
+  my-network:
+
+volumes:
+  mongodb-volume:
