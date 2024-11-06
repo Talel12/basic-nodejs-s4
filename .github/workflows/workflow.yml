@@ -24,3 +24,9 @@ jobs:
             
           - name: Push Image to Docker Hub
             run: docker push ${{ vars.DOCKERHUB_USERNAME }}/basic-nodejs-s3
+    
+    Test-job:
+      runs-on: ubuntu-latest
+      steps:
+        - name: pull image from Docker Hub
+          run: docker pull ${{ vars.DOCKERHUB_USERNAME}}/basic-nodejs-s3
