@@ -10,11 +10,8 @@ jobs:
     build-and-push:
         runs-on: ubuntu-latest
         steps:
-          - name: list folder
-            run: ls -l
-
           - name: clone repo to runner
             uses: actions/checkout@v4
           
-          - name: list folder
-            run: ls -l
+          - name: build Image
+            run: docker build -t basic-nodejs-s3 .
