@@ -15,3 +15,6 @@ jobs:
           
           - name: build Image
             run: docker build -t basic-nodejs-s3 .
+
+          - name: list image
+            run: docker images
