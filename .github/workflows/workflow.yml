@@ -60,5 +60,6 @@ jobs:
             host: ${{ secrets.HOST }}
             username: ${{ secrets.USERNAME }}
             password: ${{ secrets.VPS_PASSWORD }}
-            script: whoami
+            script: /home/ubuntu/test.sh
+
         
