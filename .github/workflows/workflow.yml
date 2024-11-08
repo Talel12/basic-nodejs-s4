@@ -38,6 +38,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      # Create a cache directory if it doesn't exist
+      - name: Create Cache Directory
+        run: |
+          mkdir -p /tmp/.buildx-cache
+
       # Cache Docker layers using buildx
       - name: Cache Docker layers
         id: cache-docker-layers
@@ -54,21 +59,28 @@ jobs:
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache \
             --tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} \
-            --tag ${{ github.repository }} \
+            --tag ${{ github.repository }}:latest \
             --push .
 
-      # Check if the image exists before pushing
-      - name: List Docker Images
+      # Check if the image exists after build
+      - name: Verify Built Docker Image
+        run: docker images
+
+      - name: Tag Docker Image for Push
+        run: |
+          docker tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
+          docker tag ${{ github.repository }}:latest talel12/basic-nodejs-s4:latest
+
+      # Check if the image is tagged correctly
+      - name: Verify Tagged Images
         run: docker images
 
       - name: Push Image to Docker Hub (tagged with BUILD_NUMBER)
         run: |
-          docker tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
           docker push talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
 
       - name: Push Latest Image to Docker Hub
         run: |
-          docker tag ${{ github.repository }}:latest talel12/basic-nodejs-s4:latest
           docker push talel12/basic-nodejs-s4:latest
 
   Test-job:
@@ -82,10 +94,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Pull Docker Image from Docker Hub
-        run: docker pull ${{ github.repository }}:${{ env.BUILD_NUMBER }}
+        run: docker pull talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
 
       - name: Run Tests
-        run: docker run ${{ github.repository }}:${{ env.BUILD_NUMBER }} npm test
+        run: docker run talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }} npm test
 
   Deployment:
     runs-on: ubuntu-latest
