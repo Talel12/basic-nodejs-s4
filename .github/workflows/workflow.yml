@@ -34,8 +34,13 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Cache Docker layers to speed up the build process
-      - name: Cache Docker Layers
+      # Set up Docker Buildx (necessary for caching layers)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Cache Docker layers using buildx
+      - name: Cache Docker layers
+        id: cache-docker-layers
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
@@ -43,25 +48,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docker-
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver-opts: network=host
-
-      - name: Build and Tag Docker Image
+      - name: Build and Tag Docker Image with Buildx
         run: |
-          docker build \
+          docker buildx build \
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache \
-            -t ${{ github.repository }}:${{ env.BUILD_NUMBER }} .
-      
-      - name: Push Image to Docker Hub
+            --tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} \
+            --tag ${{ github.repository }}:latest \
+            --push .
+
+      - name: Push Image to Docker Hub (tagged with BUILD_NUMBER)
         run: docker push ${{ github.repository }}:${{ env.BUILD_NUMBER }}
 
-      - name: Tag Image as Latest
-        run: docker tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} ${{ github.repository }}:latest
-      
-      - name: Push Latest Tag to Docker Hub
+      - name: Push Latest Image to Docker Hub
         run: docker push ${{ github.repository }}:latest
 
   Test-job:
