@@ -54,14 +54,22 @@ jobs:
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache \
             --tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} \
-            --tag ${{ github.repository }}:latest \
+            --tag ${{ github.repository }} \
             --push .
 
+      # Check if the image exists before pushing
+      - name: List Docker Images
+        run: docker images
+
       - name: Push Image to Docker Hub (tagged with BUILD_NUMBER)
-        run: docker push ${{ github.repository }}:${{ env.BUILD_NUMBER }}
+        run: |
+          docker tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
+          docker push talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
 
       - name: Push Latest Image to Docker Hub
-        run: docker push ${{ github.repository }}:latest
+        run: |
+          docker tag ${{ github.repository }}:latest talel12/basic-nodejs-s4:latest
+          docker push talel12/basic-nodejs-s4:latest
 
   Test-job:
     runs-on: ubuntu-latest
