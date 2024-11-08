@@ -51,7 +51,7 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-docker-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-docker-
+            ${{ runner.os }}-docker-${{ github.sha }}
 
       - name: Build and Tag Docker Image with Buildx
         run: |
