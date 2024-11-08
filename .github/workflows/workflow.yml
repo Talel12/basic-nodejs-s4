@@ -60,4 +60,4 @@ jobs:
             host: ${{ secrets.HOST }}
             username: ${{ secrets.USERNAME }}
             password: ${{ secrets.VPS_PASSWORD }}
-            script: /home/ubuntu/deploy.sh 
+            script: sudo /home/ubuntu/deploy.sh 
