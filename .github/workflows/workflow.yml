@@ -1,112 +1,70 @@
 name: Test Workflow
 
 on:
-  push:
-    branches:
-      - main
-
+    push:
+        branches:
+            - main
+    
 env:
   BUILD_NUMBER: ${{ github.run_number }}
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    build-and-push:
+        runs-on: ubuntu-latest
+        steps:
+          - name: clone repo to runner
+            uses: actions/checkout@v4
 
-      # Cache Node.js dependencies
-      - name: Cache Node Modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          - name: Login to Docker Hub
+            uses: docker/login-action@v3
+            with:
+              username: ${{ vars.DOCKERHUB_USERNAME }}
+              password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+          - name: build Image
+            run: docker build -t ${{ github.repository }}:${{ env.BUILD_NUMBER }} .
+            
+          - name: Push Image to Docker Hub
+            run: docker push ${{ github.repository }}:${{ env.BUILD_NUMBER }} 
 
-      # Install dependencies if cache miss
-      - name: Install Dependencies
-        run: npm ci
+          - name: Tag Image to Latest
+            run: docker tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} ${{ github.repository }}:latest
+          
+          - name: Push Image to Docker Hub
+            run: docker push ${{ github.repository }}:latest
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Set up Docker Buildx (necessary for caching layers)
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    Test-job:
+      runs-on: ubuntu-latest
+      needs: ["build-and-push"]
+      steps:
+        - name: Login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+              username: ${{ vars.DOCKERHUB_USERNAME }}
+              password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Create Cache Directory if missing
-      - name: Create Cache Directory
-        run: |
-          mkdir -p /tmp/.buildx-cache
+        - name: pull image from Docker Hub
+          run: docker pull ${{ github.repository }}
 
-      # Cache Docker layers using buildx
-      - name: Cache Docker layers
-        id: cache-docker-layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-docker-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-docker-
+        - name: Run Tests
+          run: docker run ${{ github.repository }} npm test
 
-      - name: Build and Tag Docker Image with Buildx
-        run: |
-          docker buildx build \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache \
-            --tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} \
-            --tag ${{ github.repository }}:latest \
-            --push .
-
-      # Check if the image exists after build
-      - name: Verify Built Docker Image
-        run: docker images
-
-      - name: Tag Docker Image for Push
-        run: |
-          docker tag ${{ github.repository }}:${{ env.BUILD_NUMBER }} talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
-          docker tag ${{ github.repository }}:latest talel12/basic-nodejs-s4:latest
-
-      # Check if the image is tagged correctly
-      - name: Verify Tagged Images
-        run: docker images
-
-      - name: Push Image to Docker Hub (tagged with BUILD_NUMBER)
-        run: |
-          docker push talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
-
-      - name: Push Latest Image to Docker Hub
-        run: |
-          docker push talel12/basic-nodejs-s4:latest
-
-  Test-job:
-    runs-on: ubuntu-latest
-    needs: ["build-and-push"]
-    steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Pull Docker Image from Docker Hub
-        run: docker pull talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }}
-
-      - name: Run Tests
-        run: docker run talel12/basic-nodejs-s4:${{ env.BUILD_NUMBER }} npm test
-
-  Deployment:
-    runs-on: ubuntu-latest
-    needs: ["Test-job"]
-    steps:
-      - name: Execute Remote SSH Commands
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          script: sudo /home/ubuntu/deploy.sh
+    Deployment: 
+      runs-on: ubuntu-latest
+      needs: ["Test-job"]
+      steps:
+        - name: executing remote ssh commands using password
+          uses: appleboy/ssh-action@v1.1.0
+          with:
+            host: ${{ secrets.HOST }}
+            username: ${{ secrets.USERNAME }}
+            password: ${{ secrets.VPS_PASSWORD }}
+            script: |
+                sudo docker pull ${{ github.repository }}
+                sudo docker run -d -p 3001:3001 --name devops-s4-container-temp ${{ github.repository }}
+                sleep 5
+                sudo docker stop devops-s4-container
+                sudo docker rm devops-s4-container
+                sudo docker rename devops-s4-container-temp devops-s4-container
+                sudo docker images prune
