@@ -60,4 +60,9 @@ jobs:
             host: ${{ secrets.HOST }}
             username: ${{ secrets.USERNAME }}
             password: ${{ secrets.VPS_PASSWORD }}
-            script: /home/ubuntu/deploy.sh
+            script: |
+                sudo docker pull ${{ github.repository }}
+                sudo docker stop devops-s4-container
+                sudo docker rm devops-s4-container
+                sudo docker run -d -p 3001:3001 --name devops-s4-container ${{ github.repository }}
+                sudo docker images prune
