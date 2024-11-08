@@ -38,7 +38,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Create a cache directory if it doesn't exist
+      # Create Cache Directory if missing
       - name: Create Cache Directory
         run: |
           mkdir -p /tmp/.buildx-cache
@@ -51,7 +51,7 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-docker-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-docker-${{ github.sha }}
+            ${{ runner.os }}-docker-
 
       - name: Build and Tag Docker Image with Buildx
         run: |
