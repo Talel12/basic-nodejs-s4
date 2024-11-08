@@ -1,11 +1,13 @@
 const express = require('express')
 const mongoose = require("mongoose");
+const cors = require('cors')
 const Item = require("./models/Item");
 const app = express()
 const port = 3001
 require('dotenv').config()
 
 app.use(express.json({ extended: true }));
+app.use(cors())
 app.use(express.urlencoded({ extended: true }));
 
 const calculate = require('./calculate')
@@ -14,7 +16,7 @@ const calculate = require('./calculate')
 // "mongodb://mongodb-service:27017/mydb"  => connect from an other container in the same network [use service-name & container-port]
 
 mongoose
-    .connect(process.env.DB_HOST, { useNewUrlParser: true })
+    .connect(process.env.DB_HOST, { useNewUrlParser: true, useUnifiedTopology: true  })
     .then(() => console.log("MongoDB Connected..."))
     .catch((err) => console.log("Error = ", err));
 

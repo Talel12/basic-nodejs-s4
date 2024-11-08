@@ -1,0 +1,35 @@
+version: "3.9"
+name: "mongodb-stack"
+
+services:
+  # MongoDB service configuration
+  mongodb-service:
+    container_name: mongodb-container  # Name of the container
+    image: mongo:latest  # Use the latest MongoDB image
+    restart: always  # Always restart the container if it stops
+    environment:
+      # Environment variables for MongoDB initialization
+      MONGO_INITDB_ROOT_USERNAME: mongodb-root-user  # Root username
+      MONGO_INITDB_ROOT_PASSWORD: mongodb-root-pass  # Root password
+      MONGO_INITDB_DATABASE: mydb  # Default database to create
+    ports:
+      - "27018:27017"  # Expose port 27017 for MongoDB access
+    volumes:
+      # Data persistence and initialization
+      - mongodb-volume:/data/db  # Persistent storage for MongoDB data
+    networks:
+      - mongodb-network  # Connect to the specified network
+
+# Define persistent volumes
+volumes:
+  mongodb-volume:
+    name: mongodb-volume  # Name of the persistent volume
+
+# Define custom networks
+networks:
+  mongodb-network:
+    name: mongodb-network  # Name of the custom network
+
+# Connection strings
+# SUPER-ADMIN = mongodb://mongodb-root-user:mongodb-root-pass@localhost:27017
+# DB-ADMIN = mongodb://db-user:db-pass@localhost:27017/mydb
